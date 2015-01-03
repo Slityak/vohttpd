@@ -753,7 +753,6 @@ void vohttpd_show_usage()
     printf("usage: vohttpd [-bdhp?]\n\n");
     printf("example: vohttpd -d/var/www/html/cgi-bin/votest.so -p8080\n");
     printf("\t-b[path]  set www home/base folder, default /var/www/html.\n"
-           "\t-d[path]  preload plugin.\n"
            "\t-h,-?     show this usage.\n"
            "\t-p[port]  set server listen port, default 8080.\n"
            "\n");
@@ -762,25 +761,27 @@ void vohttpd_show_usage()
 int main(int argc, char *argv[])
 {
     vohttpd_init();
-    // load base plugin by default
+    // autoload available plugins
+    DIR *dir;
+    struct dirent *dp;
     const char *errstr;
-    char plugin_path[50];
-    strcpy(plugin_path, g_set.plugin_path);
-    strcat(plugin_path, "/voplugin.so");
-    errstr = vohttpd_load_plugin(plugin_path);
-    if(errstr != NULL)
-        printf("load_plugin(voplugin.so) error loading %s\n", plugin_path);
+
+    dir = opendir(g_set.plugin_path);
+    while ((dp = readdir(dir)) != NULL) {
+      if(strcmp(dp->d_name, ".") == 0 || strcmp(dp->d_name, "..") == 0)
+            continue;
+      char plugin_path[50];
+      strcpy(plugin_path, g_set.plugin_path);
+      strcat(plugin_path, "/");
+      strcat(plugin_path, dp->d_name);
+      vohttpd_load_plugin(plugin_path);
+    }
+    (void)closedir(dir);
     while(argc--) {
         const char *errstr;
         if(argv[argc][0] != '-' && argv[argc][0] != '/')
             continue;
         switch(argv[argc][1]) {
-
-        case 'd':   // preload plugins.
-            errstr = vohttpd_load_plugin(argv[argc] + 2);
-            if(errstr != NULL)
-                printf("load_plugin(%s) error: %s\n", argv[argc] + 2, errstr);
-            break;
 
         case 'p':   // default port.
             g_set.port = atoi(argv[argc] + 2);
