@@ -267,13 +267,13 @@ int plugin_install(socket_data *d, string_reference *pa)
         return plugin_json_status(d, "no end of content.");
 
     // write file to local, default: /var/www/html/cgi-bin/.
-    snprintf(path, MESSAGE_SIZE, "%s" HTTP_CGI_BIN "%s", d->set->base, name);
+    snprintf(path, MESSAGE_SIZE, "%s" HTTP_CGI_BIN "%s", d->set->html_path, name);
 
     switch(d->type) {
     case SOCKET_DATA_MMAP: {  // mmap memory
         char map[MESSAGE_SIZE];
         int size = e - p - 2;
-        snprintf(map, MESSAGE_SIZE, "%s" HTTP_CGI_BIN MMAP_FILE_NAME, d->set->base, d->sock);
+        snprintf(map, MESSAGE_SIZE, "%s" HTTP_CGI_BIN MMAP_FILE_NAME, d->set->html_path, d->sock);
 
         memmove(d->body, p, size);
         msync(d->body, size, MS_SYNC);

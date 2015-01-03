@@ -90,7 +90,7 @@ void socketdata_delete(linear_hash *socks, int sock)
     if(d->type == SOCKET_DATA_MMAP && d->body) {
         char map[MESSAGE_SIZE];
         munmap(d->body, d->size);
-        snprintf(map, MESSAGE_SIZE, "%s" HTTP_CGI_BIN MMAP_FILE_NAME, d->set->base, d->sock);
+        snprintf(map, MESSAGE_SIZE, "%s" HTTP_CGI_BIN MMAP_FILE_NAME, d->set->html_path, d->sock);
         remove(map);       // the map file might not exists.
     }
 
@@ -672,7 +672,7 @@ void vohttpd_loop()
                         int  fd;
 
                         // create empty file for mmap.
-                        snprintf(map, MESSAGE_SIZE, "%s" HTTP_CGI_BIN MMAP_FILE_NAME, d->set->base, d->sock);
+                        snprintf(map, MESSAGE_SIZE, "%s" HTTP_CGI_BIN MMAP_FILE_NAME, d->set->html_path, d->sock);
                         fd = open(map, O_RDWR | O_CREAT, S_IRWXU);
                         if(fd < 0) {
                             g_set.error_page(d, 413, strerror(errno));
@@ -763,7 +763,8 @@ int main(int argc, char *argv[])
 {
     vohttpd_init();
     // load base plugin by default
-    char plugin_path;
+    const char *errstr;
+    char plugin_path[50];
     strcpy(plugin_path, g_set.plugin_path);
     strcat(plugin_path, "/voplugin.so");
     errstr = vohttpd_load_plugin(plugin_path);
