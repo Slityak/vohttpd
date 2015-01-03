@@ -118,7 +118,9 @@ typedef int   (*_httpd_send)(int, const void*, int, int);
 
 struct _vohttpd {
     unsigned short port;            // default http server port.
-    const char*    base;            // default http folder path.
+    const char*    base_path;       // default base folder path.
+    const char*    html_path;       // default http folder path.
+    const char*    plugin_path;    // default plugins folder path.
 
     linear_hash*   socks;           // store all accepted sockets.
     string_hash*   funcs;           // store all registered plugins(file, function).

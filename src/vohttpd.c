@@ -238,14 +238,14 @@ int vohttpd_default(socket_data *d, string_reference *fn)
         return d->set->error_page(d, 403, NULL);
 
     if(head[fn->size - 1] == '/') {
-        snprintf(path, MESSAGE_SIZE, "%s/%sindex.html", g_set.base, head);
+        snprintf(path, MESSAGE_SIZE, "%s/%sindex.html", g_set.html_path, head);
         if(vohttpd_file_size(path) != (uint)(-1))
             return d->set->http_file(d, path);
         // no index.html, we show it as folder.
     }
 
     // the address might be a file.
-    snprintf(path, MESSAGE_SIZE, "%s%s", g_set.base, head);
+    snprintf(path, MESSAGE_SIZE, "%s%s", g_set.html_path, head);
     if(vohttpd_is_folder(path))
         return d->set->http_folder(d, path);
     else
@@ -517,7 +517,9 @@ void vohttpd_init()
 {
     // default parameters.
     g_set.port = 80;
-    g_set.base = "/var/www/html";
+    g_set.base_path = "/www";
+    g_set.html_path = "/www/html";
+    g_set.plugin_path = "/www/plugins";
 
     // alloc buffer for globle pointer(maybe make them to static is better?)
     g_set.funcs = string_hash_alloc(FUNCTION_SIZE, FUNCTION_COUNT);
@@ -730,7 +732,7 @@ void vohttpd_show_status()
     uint i, pos, count = 0;
 
     printf("PORT:\t%d\n", g_set.port);
-    printf("PATH:\t%s\n", g_set.base);
+    printf("PATH:\t%s\n", g_set.html_path);
 
     printf("PLUGINS:\n");
     for(i = 0; i < g_set.funcs->max; i++) {
@@ -760,7 +762,13 @@ void vohttpd_show_usage()
 int main(int argc, char *argv[])
 {
     vohttpd_init();
-
+    // load base plugin by default
+    char plugin_path;
+    strcpy(plugin_path, g_set.plugin_path);
+    strcat(plugin_path, "/voplugin.so");
+    errstr = vohttpd_load_plugin(plugin_path);
+    if(errstr != NULL)
+        printf("load_plugin(voplugin.so) error loading %s\n", plugin_path);
     while(argc--) {
         const char *errstr;
         if(argv[argc][0] != '-' && argv[argc][0] != '/')
@@ -778,7 +786,7 @@ int main(int argc, char *argv[])
             break;
 
         case 'b':   // default home/base path.
-            g_set.base = argv[argc] + 2;
+            g_set.html_path = argv[argc] + 2;
             break;
 
         case 'h':
@@ -794,4 +802,3 @@ int main(int argc, char *argv[])
     vohttpd_uninit();
     return 0;
 }
-
