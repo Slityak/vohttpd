@@ -148,11 +148,12 @@ int vohttpd_http_file(socket_data *d, const char *param)
     const char* ext;
     int size, total = 0;
     FILE *fp;
-
     // file name might contains parameter, we should cut it.
-    if(p = strchr(param, '?'), p != NULL)
-        strncpy(path, param, p - param);
-    else
+    if(p = strchr(param, '?'), p != NULL) {
+	int psi = p - param;
+        strncpy(path, param, psi);
+        path[psi] = '\0';
+    } else
         strncpy(path, param, MESSAGE_SIZE);
 
     total = vohttpd_file_size(path);
